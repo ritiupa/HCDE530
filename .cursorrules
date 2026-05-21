@@ -1,0 +1,101 @@
+# HCDE 530 — Cursor agent rules (workspace-wide)
+
+This repo is a course workspace: weekly folders (`week 2` … `week 7`), Python scripts, Jupyter notebooks, CSV data, chart PNGs, HTML dashboards, and short markdown writeups. Follow these rules unless the user or assignment explicitly overrides them.
+
+---
+
+## Scope and safety
+
+- Change only what the assignment or user asked for; avoid drive-by refactors, unrelated files, or scope creep.
+- Do not delete user files or run destructive git commands (`reset --hard`, `push --force` to `main`, etc.) unless the user explicitly requests it.
+- Do not create git commits or push unless the user explicitly asks.
+- Prefer minimal, correct diffs over large rewrites; match existing naming and style in the file you edit.
+
+---
+
+## Task tracker
+
+- **`TASK_TRACKER.md`** (repo root) is the source of truth for per-week tasks (`[ ]` / `[~]` / `[x]` / `[-]`).
+- When starting or finishing assignment work, **update the relevant week section** in that file (status, deliverable filenames, short notes).
+- When a new **`week N/`** folder is added, copy the template from the bottom of `TASK_TRACKER.md` and add a Summary row.
+
+## Repo layout and paths
+
+- Work lives under **`week N/`** folders (names include a space, e.g. `week 5/week 5b/`). Quote paths in PowerShell: `"week 6\fetch_cornell.py"`.
+- Run scripts from the folder that contains the script and its CSV outputs, or use script-relative paths so cwd does not matter.
+- Do not assume files sit at the repo root unless they are (e.g. root `.cursorrules`, `HCDE 530.code-workspace`).
+
+---
+
+## Python conventions (all weeks)
+
+- Resolve bundled data paths with **`Path(__file__).resolve().parent`** (or equivalent) so scripts work from any working directory.
+- Read and write text with **`encoding="utf-8"`**; keep **`print`** output ASCII-safe on Windows when possible.
+- Validate text before **`int()`** / numeric conversion (e.g. `.isdigit()`); skip bad rows or return `None` instead of crashing.
+- When sorting for “top N” by a metric, make sort direction obvious in code or a short comment (e.g. `reverse=True` for descending).
+- Prefer clear names and small, single-purpose functions; add comments for *why* non-obvious logic exists, not for every line.
+- Use short **docstrings** on non-trivial functions (inputs, outputs, edge cases: empty data, skipped rows).
+- After substantive script edits, **run the script** once to confirm it completes without errors.
+
+### Data cleaning (survey / CSV weeks)
+
+- Skip rows missing required fields before aggregates.
+- Normalize categorical text consistently (e.g. casing) when comparing or grouping; note tradeoffs in a comment if normalization could affect joins.
+
+### Network / fetch scripts (`fetch_cornell.py`, `design_trends.py`)
+
+- Respect rate limits: backoff on HTTP **429**, reasonable delays between requests.
+- Write outputs next to the script (`design_trends.csv`, `cornell_clean.csv`, etc.) unless the assignment specifies otherwise.
+- Do not commit secrets (API keys in `.env`); warn if the user asks to commit credential files.
+
+### Arduino serial (`week 5/week 5b/design_trends.py`)
+
+- Serial is **opt-in**: `ENABLE_ARDUINO_SERIAL=1`; default port **COM4** (override with `ARDUINO_PORT`).
+- Only one program can open a COM port at a time (Python **or** Arduino Serial Monitor, not both).
+- Optional `ARDUINO_NEW_ENTRY` for `NEW:` lines; `REFRESH` from the board re-runs the pipeline.
+
+---
+
+## Jupyter notebooks
+
+- Run **setup / import** cells before analysis cells; if a helper is required, define it in the same cell or run its cell first (avoid `NameError` from out-of-order execution).
+- Set the notebook working directory to its **week folder** (paths like `cornell_clean.csv` are relative to that folder).
+- **Plotly**: `fig.show()` in notebooks needs **`nbformat`** (and often **IPython**); static export uses **`write_image`** and **`kaleido`** (`pip install kaleido`).
+- Prefer saving charts as **`chart*.png`** in the same week folder; use filenames that match **`weekN.md`** (e.g. `chart2a_emotion_near_tech_pre1990.png`, not obsolete `chart2a_context_*` names).
+- For **week 6**: run **`fetch_cornell.py`** to regenerate CSVs when needed; **Q2 emotion lexicon** lives in **`week6_cornell_analysis.ipynb`**, not in `fetch_cornell.py`.
+- For **week 5**: summary analysis often uses **`design_trends.csv`** (top trends), not the large raw file, unless the task says otherwise.
+- Clear stale **error outputs** in cells after fixing code when practical.
+
+---
+
+## Week-specific reminders
+
+| Area | Notes |
+|------|--------|
+| **week 3** | Survey cleaning (`clean_responses.py`), role counts, fixed vs buggy analysis scripts; competency claims in markdown. |
+| **week 4 / 5b** | `design_trends.py`: Wikipedia discovery, `design_trends_raw.csv` + summary `design_trends.csv`; run from `week 4/` or `week 5/week 5b/`. |
+| **week 6** | Cornell corpus: `fetch_cornell.py` → three CSVs; MP1 notebook + `week6.md` chart justifications; Q2 = emotion-keyword neighbors only. |
+| **week 7** | Forum CSV analysis; severity writeups (e.g. `severity_feedback.md`) with Critical/High/Medium and cited post ids. |
+| **week 2** | Standalone **`dashboard.html`** and small demo scripts. |
+
+---
+
+## HTML dashboards
+
+- Default to **standalone HTML** unless a framework is requested.
+- Use clear section headings and concise labels; prefer lightweight, dependency-free JavaScript when possible.
+
+---
+
+## Documentation and deliverables
+
+- Keep **`weekN.md`** and competency claim files aligned with actual chart filenames and analysis choices.
+- When reframing an analytical question (e.g. raw co-occurrence → emotion lexicon), update **overview, question text, interpretation, and weekN.md** together—not only the code cell.
+
+---
+
+## Large files and performance
+
+- Avoid pasting entire large CSVs into chat; summarize columns, shapes, and head rows instead.
+- Prefer vectorized **pandas** over slow **`iterrows`** for new code unless the assignment is explicitly about row-wise loops.
+- Regenerating **`cornell_clean.csv`** or **`design_trends_raw.csv`** can take minutes; say so if you trigger a full fetch.

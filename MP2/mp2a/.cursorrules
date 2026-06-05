@@ -1,0 +1,124 @@
+# LENS — Layered Evidence and Narrative Synthesizer (HCDE 530 / MP2)
+
+**Path:** `MP2/lens/` inside the HCDE 530 repo.  
+**Read first:** `project_notes.md`, then `decisions.md` when continuing work.
+
+Multi-modal UX synthesis: face, voice, and words → findings richer than text-only AI.
+
+**Audience:** UX researchers doing moderated usability tests under deadline.  
+**Data:** Real p5.js reference documentation sessions (3–5 participants); mixed video / audio / transcript inputs.
+
+---
+
+## Working with the agent (HCDE 530 SP26)
+
+### Setting up the work
+
+- Convert briefs, transcripts, and articles to **`.md`** before pasting (use `markitdown` for PDF/Word). Avoid dumping raw PDFs into chat.
+- Keep **`project_notes.md`** and **`decisions.md`** updated; user prompts should say: *"Read project_notes.md first, then …"*
+- **Scope with `@`:** `@file`, `@folder` — not whole repo when one module is enough.
+- **Submission:** commit `.cursorrules`, `project_notes.md`, `decisions.md`, and other `.md` process files — they document agent workflow, not only code.
+
+### Working with the agent
+
+- **Fresh chat** every ~10–15 turns, or when the agent repeats, contradicts, or loses thread. Carry forward via `project_notes.md`.
+- **One change at a time** — one module or one bug per prompt.
+- **Plan before edits** — propose a plan; user approves before large file changes.
+- **Explain before changing** — summarize what a file does; if wrong, fix understanding before code.
+
+### Catching mistakes
+
+- **Read every diff** — accept hunks individually; reject or ask if unclear.
+- **Commit before big moves** — user commits; agent does not unless asked.
+- **Stop loops** — same fix failed twice → stop; user summarizes error + attempts; fresh chat.
+- **Paste real artifacts** — full error text, file snippets, terminal output (agent cannot see the screen).
+
+---
+
+## Scope and safety
+
+- Build **one module per request** unless user asks for a coordinated slice.
+- Do not delete recordings, `.env`, or `outputs/` session data.
+- Do not commit `.env`, API keys, or raw participant media.
+- Readable, commented Python for a graduate student — not over-engineered.
+- **Ingestion + extractors deferred** until core pipeline validated on **fixtures**; wire real media in testing phase.
+
+---
+
+## Project layout
+
+```
+MP2/lens/
+├── .cursorrules
+├── project_notes.md      # session memory — update often
+├── decisions.md          # stable design choices
+├── README.md
+├── app.py                # Streamlit: Upload → Processing → Report
+├── models.py
+├── session_builder.py
+├── synthesis.py
+├── report_generator.py
+├── query_engine.py
+├── export.py
+├── ingestion.py          # LAST
+├── transcription.py, emotion_*.py, screen_analysis.py, language_analysis.py
+├── fixtures/
+├── scripts/run_pipeline_fixture.py
+└── outputs/              # gitignored artifacts
+```
+
+`Path(__file__).resolve().parent` for paths. UTF-8 text I/O.
+
+---
+
+## Flexible inputs + confidence
+
+Any combination per session: **video**, **audio**, **transcript**, **study context**.
+
+- `InputCapabilities` on each session; analyzers **skip** missing channels.
+- **Confidence** on signals, timeline events, clusters, and sessions (`high` / `medium` / `low` + scores).
+- `multi_modal_convergence` only when **≥2 channels with data** agree on friction.
+- Report must state what was **not** available per participant.
+
+---
+
+## Technology stack
+
+| Layer | Tool |
+|-------|------|
+| Ingestion | moviepy, opencv (deferred) |
+| Transcription | openai-whisper local |
+| Vocal emotion | transformers wav2vec2 emotion model |
+| Face + screen | GPT-4o vision (`OPENAI_API_KEY`) — 5s frames; cost estimate first |
+| Language / report / query | Mistral via **HuggingFace Inference API** (`HUGGINGFACE_API_KEY`) — primary; rule-based fallback; other providers only via one env flag later |
+| Clustering | chromadb + sentence-transformers (local fallback OK) |
+| UI | streamlit → Streamlit Cloud |
+| Export | fpdf2 |
+
+---
+
+## Build order
+
+1. models → session_builder → synthesis → report_generator → query_engine → export → app  
+2. fixtures + `scripts/run_pipeline_fixture.py`  
+3. ingestion + modality extractors **only after** fixture pipeline approved  
+
+---
+
+## Generative UI + demo
+
+- Report **structure** follows evidence (dominant cluster vs balanced).
+- **Query UI** generates views from natural language.
+- **June 3 demo:** transcript-only vs LENS on same p5.js session; list what text-only missed.
+
+---
+
+## Related: BLOOM (HCDE 539)
+
+- **Xeno workspace:** `Documents/Xeno/bloom/` — same multi-modal *idea*, different output (physical computing).
+- **Do not** copy LENS Python into BLOOM or vice versa unless user requests a shared library.
+
+## Git
+
+- Commit only when user asks.
+- `.gitignore`: `.env`, `outputs/`, `__pycache__/`, `*.mp4`, `*.wav`, frame folders.

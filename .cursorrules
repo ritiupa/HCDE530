@@ -1,6 +1,12 @@
 # HCDE 530 — Cursor agent rules (workspace-wide)
 
-This repo is a course workspace: weekly folders (`week 2` … `week 7`), Python scripts, Jupyter notebooks, CSV data, chart PNGs, HTML dashboards, and short markdown writeups. Follow these rules unless the user or assignment explicitly overrides them.
+This repo is a course workspace: weekly folders (`week 2` … `week 8`), **`MP2/lens/`** (LENS), Python scripts, notebooks, CSVs, charts, and markdown writeups. **BLOOM (HCDE 539)** lives in the separate **`Documents/Xeno/`** workspace — same multi-modal concept, different output; not shared code.
+
+### MP2 / LENS
+
+- Work under **`MP2/lens/`** — read **`MP2/lens/.cursorrules`**, **`project_notes.md`**, **`decisions.md`** first.
+- Mistral: **HuggingFace Inference API** by default; keep LLM integration simple.
+- MP2 submission includes process `.md` files and `.cursorrules`, not only code.
 
 ---
 

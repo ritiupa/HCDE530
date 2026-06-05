@@ -1,0 +1,15 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+outputs/
+lens_output/
+**/camera_frames/
+**/screen_frames/
+*.mp4
+*.mov
+*.wav
+*.mp3
+.DS_Store

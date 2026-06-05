@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="./streamlit-component-lib.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: transparent;
+      color: #f4f4f5;
+    }
+    .recorder {
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #1a1a1d;
+    }
+    .preview-wrap {
+      position: relative;
+      background: #000;
+      aspect-ratio: 16 / 9;
+      min-height: 280px;
+      max-height: 420px;
+    }
+    video#preview, video#playback {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    video#playback { display: none; }
+    .rec-badge {
+      position: absolute; top: 12px; left: 12px;
+      display: none; align-items: center; gap: 6px;
+      background: rgba(239,68,68,0.92); color: white;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+      padding: 4px 10px; border-radius: 100px;
+    }
+    .rec-badge.paused { background: rgba(245,158,11,0.92); }
+    .rec-badge.show { display: inline-flex; }
+    .rec-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: white;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 50% { opacity: 0.3; } }
+    .timer {
+      position: absolute; bottom: 12px; right: 12px;
+      font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 500;
+      background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 6px;
+    }
+    .placeholder {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #71717a; font-size: 13px; text-align: center; padding: 1rem;
+    }
+    .controls {
+      padding: 12px 14px;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    button {
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      border: none; border-radius: 8px; cursor: pointer;
+      padding: 9px 16px; transition: opacity 0.15s;
+    }
+    button:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-start { background: #3b82f6; color: white; }
+    .btn-pause { background: #2a2a2f; color: #f4f4f5; border: 1px solid rgba(255,255,255,0.12); }
+    .btn-stop { background: rgba(239,68,68,0.15); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+    .btn-redo { background: #2a2a2f; color: #a1a1aa; border: 1px solid rgba(255,255,255,0.09); }
+    .meters { flex: 1; min-width: 120px; }
+    .meter-label {
+      font-size: 10px; color: #71717a; text-transform: uppercase;
+      letter-spacing: 0.05em; margin-bottom: 4px;
+    }
+    .meter-bar {
+      height: 4px; background: #2a2a2f; border-radius: 2px; overflow: hidden;
+    }
+    .meter-fill {
+      height: 100%; background: #3b82f6; border-radius: 2px;
+      width: 0%; transition: width 0.3s, background 0.3s;
+    }
+    .meter-fill.warn { background: #f59e0b; }
+    .meter-fill.danger { background: #ef4444; }
+    .status {
+      padding: 10px 14px 12px;
+      font-size: 12px; color: #71717a; line-height: 1.45;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+    .status.error { color: #fca5a5; }
+    .status.ok { color: #86efac; }
+  </style>
+</head>
+<body>
+  <div class="recorder">
+    <div class="preview-wrap">
+      <video id="preview" autoplay playsinline muted></video>
+      <video id="playback" controls playsinline></video>
+      <div class="placeholder" id="placeholder">Starting camera… allow access when prompted.</div>
+      <div class="rec-badge" id="recBadge"><span class="rec-dot"></span> <span id="recLabel">REC</span></div>
+      <div class="timer" id="timer">00:00</div>
+    </div>
+    <div class="controls">
+      <button class="btn-start" id="btnStart">Start</button>
+      <button class="btn-pause" id="btnPause" disabled>Pause</button>
+      <button class="btn-stop" id="btnStop" disabled>Stop</button>
+      <button class="btn-redo" id="btnRedo" disabled>Redo</button>
+      <div class="meters">
+        <div class="meter-label">Size · <span id="sizeText">0</span> / <span id="maxSizeText">200</span> MB</div>
+        <div class="meter-bar"><div class="meter-fill" id="sizeMeter"></div></div>
+      </div>
+    </div>
+    <div class="status" id="status">Allow camera access when prompted, then click Start.</div>
+  </div>
+
+  <script>
+    const PRESETS = {
+      standard: { width: 854, height: 480, frameRate: 20, videoBitsPerSecond: 900000, audioBitsPerSecond: 64000 },
+      balanced: { width: 640, height: 480, frameRate: 15, videoBitsPerSecond: 550000, audioBitsPerSecond: 48000 },
+      extended: { width: 480, height: 360, frameRate: 12, videoBitsPerSecond: 320000, audioBitsPerSecond: 32000 },
+    };
+
+    let args = { quality: "balanced", max_size_mb: 200, max_duration_sec: 1800 };
+    let stream = null;
+    let recorder = null;
+    let chunks = [];
+    let segmentStart = null;
+    let elapsedBeforePause = 0;
+    let timerInterval = null;
+    let pendingBlob = null;
+    let pendingDuration = 0;
+    let lastQuality = null;
+    let phase = "idle"; // idle | recording | paused | review
+
+    const preview = document.getElementById("preview");
+    const playback = document.getElementById("playback");
+    const placeholder = document.getElementById("placeholder");
+    const recBadge = document.getElementById("recBadge");
+    const recLabel = document.getElementById("recLabel");
+    const timerEl = document.getElementById("timer");
+    const statusEl = document.getElementById("status");
+    const sizeText = document.getElementById("sizeText");
+    const maxSizeText = document.getElementById("maxSizeText");
+    const sizeMeter = document.getElementById("sizeMeter");
+    const btnStart = document.getElementById("btnStart");
+    const btnPause = document.getElementById("btnPause");
+    const btnStop = document.getElementById("btnStop");
+    const btnRedo = document.getElementById("btnRedo");
+
+    function setStatus(msg, cls) {
+      statusEl.textContent = msg;
+      statusEl.className = "status" + (cls ? " " + cls : "");
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, "0");
+      const s = Math.floor(sec % 60).toString().padStart(2, "0");
+      return m + ":" + s;
+    }
+
+    function getElapsedSec() {
+      if (phase === "paused") return elapsedBeforePause;
+      if (phase === "recording" && segmentStart) {
+        return elapsedBeforePause + (Date.now() - segmentStart) / 1000;
+      }
+      return pendingDuration;
+    }
+
+    function currentSizeBytes() {
+      return chunks.reduce((n, c) => n + c.size, 0);
+    }
+
+    function updateMeters() {
+      const maxBytes = args.max_size_mb * 1024 * 1024;
+      const size = phase === "review" && pendingBlob ? pendingBlob.size : currentSizeBytes();
+      const pct = Math.min(100, (size / maxBytes) * 100);
+      sizeText.textContent = (size / (1024 * 1024)).toFixed(1);
+      maxSizeText.textContent = args.max_size_mb;
+      sizeMeter.style.width = pct + "%";
+      sizeMeter.className = "meter-fill" + (pct > 90 ? " danger" : pct > 75 ? " warn" : "");
+
+      if (phase === "recording" || phase === "paused") {
+        const elapsed = getElapsedSec();
+        timerEl.textContent = formatTime(elapsed);
+        if (phase === "recording") {
+          if (elapsed >= args.max_duration_sec) stopRecording("Time limit reached.");
+          if (currentSizeBytes() >= maxBytes) stopRecording("Size limit reached.");
+        }
+      }
+    }
+
+    function setButtons() {
+      btnStart.disabled = phase !== "idle";
+      btnPause.disabled = phase !== "recording" && phase !== "paused";
+      btnPause.textContent = phase === "paused" ? "Resume" : "Pause";
+      btnStop.disabled = phase !== "recording" && phase !== "paused";
+      btnRedo.disabled = phase !== "review";
+    }
+
+    function setRecBadge(active, paused) {
+      if (!active) {
+        recBadge.classList.remove("show", "paused");
+        return;
+      }
+      recBadge.classList.add("show");
+      if (paused) {
+        recBadge.classList.add("paused");
+        recLabel.textContent = "PAUSED";
+      } else {
+        recBadge.classList.remove("paused");
+        recLabel.textContent = "REC";
+      }
+    }
+
+    async function initCamera() {
+      const preset = PRESETS[args.quality] || PRESETS.balanced;
+      try {
+        if (stream) {
+          stream.getTracks().forEach(t => t.stop());
+          stream = null;
+        }
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: preset.width },
+            height: { ideal: preset.height },
+            frameRate: { ideal: preset.frameRate, max: preset.frameRate + 2 },
+          },
+          audio: { echoCancellation: true, noiseSuppression: true },
+        });
+        preview.srcObject = stream;
+        preview.style.display = "block";
+        playback.style.display = "none";
+        placeholder.style.display = "none";
+        if (phase === "idle" || phase === "review") {
+          phase = "idle";
+          setButtons();
+        }
+        setStatus("Camera ready — click Start when the participant is ready.");
+      } catch (err) {
+        placeholder.style.display = "flex";
+        placeholder.textContent = "Camera unavailable — allow access and refresh.";
+        setStatus("Camera access denied: " + err.message, "error");
+        btnStart.disabled = true;
+      }
+    }
+
+    function startRecording() {
+      if (!stream || phase !== "idle") return;
+      const preset = PRESETS[args.quality] || PRESETS.balanced;
+      chunks = [];
+      pendingBlob = null;
+      elapsedBeforePause = 0;
+      Streamlit.setComponentValue(null);
+
+      const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp8,opus")
+        ? "video/webm;codecs=vp8,opus"
+        : "video/webm";
+
+      recorder = new MediaRecorder(stream, {
+        mimeType: mime,
+        videoBitsPerSecond: preset.videoBitsPerSecond,
+        audioBitsPerSecond: preset.audioBitsPerSecond,
+      });
+
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = onRecorderStop;
+      recorder.start(1000);
+      segmentStart = Date.now();
+      phase = "recording";
+      setRecBadge(true, false);
+      preview.style.display = "block";
+      playback.style.display = "none";
+      setButtons();
+      setStatus("Recording — Pause anytime, then Stop when finished.");
+      timerInterval = setInterval(updateMeters, 500);
+    }
+
+    function togglePause() {
+      if (!recorder || recorder.state === "inactive") return;
+      if (phase === "recording") {
+        recorder.pause();
+        elapsedBeforePause += (Date.now() - segmentStart) / 1000;
+        segmentStart = null;
+        phase = "paused";
+        setRecBadge(true, true);
+        setStatus("Paused — click Resume to continue recording.");
+      } else if (phase === "paused") {
+        recorder.resume();
+        segmentStart = Date.now();
+        phase = "recording";
+        setRecBadge(true, false);
+        setStatus("Recording — click Stop when finished.");
+      }
+      setButtons();
+    }
+
+    function stopRecording(reason) {
+      if ((phase !== "recording" && phase !== "paused") || !recorder || recorder.state === "inactive") return;
+      if (phase === "recording" && segmentStart) {
+        elapsedBeforePause += (Date.now() - segmentStart) / 1000;
+      }
+      recorder.stop();
+      clearInterval(timerInterval);
+      setRecBadge(false, false);
+      if (reason) setStatus(reason);
+    }
+
+    function blobToBase64(blob) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    async function onRecorderStop() {
+      pendingBlob = new Blob(chunks, { type: "video/webm" });
+      pendingDuration = elapsedBeforePause;
+      segmentStart = null;
+      updateMeters();
+      timerEl.textContent = formatTime(pendingDuration);
+
+      preview.style.display = "none";
+      playback.src = URL.createObjectURL(pendingBlob);
+      playback.style.display = "block";
+
+      if (pendingBlob.size === 0) {
+        phase = "idle";
+        preview.style.display = "block";
+        playback.style.display = "none";
+        elapsedBeforePause = 0;
+        setStatus("Nothing captured — click Start to try again.", "error");
+        setButtons();
+        return;
+      }
+
+      phase = "review";
+      setButtons();
+      setStatus("Review your recording below. Click Redo to re-record, or Analyze in the app when ready.", "ok");
+
+      try {
+        const data = await blobToBase64(pendingBlob);
+        Streamlit.setComponentValue({
+          data,
+          filename: "live_recording_" + Date.now() + ".webm",
+          duration_sec: Math.round(pendingDuration),
+          size_bytes: pendingBlob.size,
+          quality: args.quality,
+          action: "ready",
+        });
+      } catch (err) {
+        setStatus("Could not save recording: " + err.message, "error");
+      }
+    }
+
+    function redo() {
+      if (phase !== "review") return;
+      chunks = [];
+      pendingBlob = null;
+      pendingDuration = 0;
+      elapsedBeforePause = 0;
+      playback.style.display = "none";
+      preview.style.display = "block";
+      timerEl.textContent = "00:00";
+      sizeMeter.style.width = "0%";
+      sizeText.textContent = "0";
+      phase = "idle";
+      Streamlit.setComponentValue({ action: "redo" });
+      setButtons();
+      setStatus("Ready to record again — click Start.");
+    }
+
+    btnStart.addEventListener("click", startRecording);
+    btnPause.addEventListener("click", togglePause);
+    btnStop.addEventListener("click", () => stopRecording());
+    btnRedo.addEventListener("click", redo);
+
+    function onRender(event) {
+      args = event.detail.args;
+      maxSizeText.textContent = args.max_size_mb;
+      const qualityChanged = lastQuality !== null && lastQuality !== args.quality;
+      lastQuality = args.quality;
+      if (!stream || qualityChanged) {
+        if (phase === "idle" || phase === "review") initCamera();
+      }
+    }
+
+    Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
+    Streamlit.setComponentReady();
+    initCamera();
+    Streamlit.setFrameHeight(480);
+  </script>
+</body>
+</html>

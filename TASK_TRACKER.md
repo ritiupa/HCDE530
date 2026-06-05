@@ -33,6 +33,7 @@ Track work **per week folder** (`week 2` … `week N`). Update this file when yo
 | 6 | `week 6/` | Cornell corpus fetch + MP1 charts | `[x]` Complete |
 | 7 | `week 7/` | Figma forum feedback analysis | `[~]` In progress |
 | 8 | `week 8/` | Mini Project 1 (Cornell) | `[x]` Complete |
+| MP2 | `MP2/lens/` | LENS multi-modal synthesis | `[~]` In progress |
 
 ---
 

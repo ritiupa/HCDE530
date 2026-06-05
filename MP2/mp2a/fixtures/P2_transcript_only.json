@@ -1,0 +1,20 @@
+{
+  "participant_id": "P2",
+  "study_context": "p5.js reference documentation",
+  "duration_seconds": 90,
+  "capabilities": {
+    "has_video": false,
+    "has_audio": false,
+    "has_transcript": true,
+    "has_study_context": true
+  },
+  "timeline_rows": [
+    {
+      "timestamp": "00:30",
+      "timestamp_seconds": 30,
+      "transcript_segment": "I expected the examples to be right here but I don't see them",
+      "language_friction": true,
+      "friction_type": "comprehension"
+    }
+  ]
+}

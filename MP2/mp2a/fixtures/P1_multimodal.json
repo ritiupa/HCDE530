@@ -1,0 +1,65 @@
+{
+  "participant_id": "P1",
+  "study_context": "p5.js reference documentation — ellipse page navigation",
+  "duration_seconds": 120,
+  "capabilities": {
+    "has_video": true,
+    "has_audio": true,
+    "has_transcript": true,
+    "has_study_context": true
+  },
+  "timeline_rows": [
+    {
+      "timestamp": "00:45",
+      "timestamp_seconds": 45,
+      "vocal_emotion": {
+        "stress": 0.72,
+        "engagement": 0.4,
+        "confusion": 0.78,
+        "frustration": 0.65,
+        "confidence_level": "medium",
+        "confidence_score": 0.7,
+        "source": "wav2vec2"
+      },
+      "facial_expression": {
+        "expression": "furrowed_brow",
+        "confusion": 0.82,
+        "frustration": 0.55,
+        "engagement": 0.35,
+        "confidence_level": "medium",
+        "confidence_score": 0.65,
+        "source": "gpt4o_vision"
+      },
+      "ui_location": "reference/ellipse",
+      "transcript_segment": "where do I find the parameters for ellipse again",
+      "language_friction": true,
+      "friction_type": "navigation"
+    },
+    {
+      "timestamp": "01:10",
+      "timestamp_seconds": 70,
+      "vocal_emotion": {
+        "stress": 0.55,
+        "engagement": 0.6,
+        "confusion": 0.4,
+        "frustration": 0.3,
+        "confidence_level": "medium",
+        "confidence_score": 0.6,
+        "source": "wav2vec2"
+      },
+      "facial_expression": {
+        "expression": "neutral",
+        "confusion": 0.2,
+        "frustration": 0.1,
+        "engagement": 0.7,
+        "confidence_level": "high",
+        "confidence_score": 0.8,
+        "source": "gpt4o_vision"
+      },
+      "ui_location": "reference/ellipse",
+      "transcript_segment": "okay that makes sense now",
+      "language_friction": false,
+      "friction_type": null
+    }
+  ]
+}

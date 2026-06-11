@@ -1,6 +1,6 @@
 # Lovable build prompt — LENS (full spec)
 
-Copy everything below the line into Lovable as your project prompt. Replace `[LOVABLE_URL]` when you have your deployment link.
+Copy everything below the line into Lovable as your project prompt. Deployed app: https://evidencesynthesizer.lovable.app
 
 ---
 
@@ -13,7 +13,7 @@ Copy everything below the line into Lovable as your project prompt. Replace `[LO
 | Reference | URL |
 |-----------|-----|
 | **GitHub prototype (Python + Streamlit)** | https://github.com/ritiupa/HCDE530/tree/main/MP2/mp2a |
-| **Current Lovable app (starting point)** | `[LOVABLE_URL]` — replace with your live Lovable deployment URL |
+| **Deployed Lovable app** | https://evidencesynthesizer.lovable.app |
 | **Local prototype** | Clone repo → `cd MP2/mp2a` → `pip install -r requirements.txt` → `streamlit run app.py` |
 
 The Streamlit prototype works but has poor UX: confusing flow, settings in the wrong places, cramped layout, and a recorder that feels like a developer tool—not a research product. **Your job is a massive improvement in both UI and UX**: clearer information architecture, professional visual design, obvious next steps at every stage, and a recording experience that feels intentional and trustworthy.
@@ -192,9 +192,10 @@ A researcher who was **not in HCDE 530** can:
 
 ## Submission placeholders (update after deploy)
 
-- **Lovable live URL:** `[LOVABLE_URL]`
+- **Lovable live URL:** https://evidencesynthesizer.lovable.app
 - **GitHub repo:** https://github.com/ritiupa/HCDE530
-- **Python reference implementation:** `MP2/mp2a/`
+- **Lovable source:** `MP2/mp2b/`
+- **Python reference:** `MP2/mp2a/`
 
 ---
 

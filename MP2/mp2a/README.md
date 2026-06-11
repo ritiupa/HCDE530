@@ -4,7 +4,10 @@ A Python tool that transforms raw usability session recordings into structured r
 
 **Built for:** HCDE 530 — Computational Concepts in HCDE, University of Washington  
 **Track:** Research  
-**Platform:** Cursor + Python + Streamlit
+**Role:** Python analysis reference (Whisper pipeline, friction detection, cross-session logic)
+
+**Live submitted app:** https://evidencesynthesizer.lovable.app (`../mp2b/`)  
+**This folder:** Streamlit prototype used to develop and test the pipeline locally.
 
 ---
 

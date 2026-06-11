@@ -1,23 +1,25 @@
 # MP2 — LENS (HCDE 530)
 
-Mini Project 2 submission materials:
+**Live app:** https://evidencesynthesizer.lovable.app  
+**Repository:** https://github.com/ritiupa/HCDE530
 
-| Folder | Purpose |
-|--------|---------|
-| **`mp2/`** | Formal submission docs, Lovable prompt, checklist |
-| **`mp2a/`** | Python pipeline + Streamlit reference implementation |
+| Folder | Role |
+|--------|------|
+| **`mp2b/`** | Deployed Lovable app (primary submission UI) |
+| **`mp2a/`** | Python pipeline + Streamlit prototype (analysis reference) |
 
-**Canvas deliverables (repo root):** [`../mp2.md`](../mp2.md) · [`../reflection.md`](../reflection.md) · [`../README.md`](../README.md)
-
-**Live URL placeholder:** `[LOVABLE_URL]` — set in root README before submitting.
+**Canvas deliverables (repo root):** [`mp2.md`](../mp2.md) · [`reflection.md`](../reflection.md) · [`README.md`](../README.md)
 
 ```powershell
-# Reference implementation (local)
+# Live app (local)
+cd "MP2\mp2b"
+bun install
+bun run dev
+
+# Python reference
 cd "MP2\mp2a"
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 streamlit run app.py
 ```
-
-See [`mp2/LOVABLE_PROMPT.md`](mp2/LOVABLE_PROMPT.md) for the full Lovable rebuild spec.

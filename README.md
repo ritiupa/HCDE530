@@ -10,13 +10,34 @@ University of Washington · Computational Concepts in HCDE
 
 ### Live tool
 
-**[LOVABLE_URL]** ← *replace with your public Lovable deployment URL*
+**https://evidencesynthesizer.lovable.app**
 
 ### Repository
 
 https://github.com/ritiupa/HCDE530
 
-### Run locally (Python reference)
+### Who it is for
+
+UX researchers and designers who run moderated think-aloud tests and need evidence-backed synthesis faster than manual video review.
+
+### Code in this repo
+
+| Folder | What it is |
+|--------|------------|
+| [`MP2/mp2b/`](MP2/mp2b/) | Deployed Lovable app (React + TanStack Start). Primary submission interface. |
+| [`MP2/mp2a/`](MP2/mp2a/) | Python analysis pipeline + Streamlit prototype. Reference implementation. |
+
+### Run locally
+
+**Lovable app (mp2b):**
+
+```powershell
+cd "MP2\mp2b"
+bun install
+bun run dev
+```
+
+**Python pipeline (mp2a):**
 
 ```powershell
 cd "MP2\mp2a"
@@ -26,23 +47,16 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Open http://localhost:8501. Optional: add `HUGGINGFACE_API_KEY` to `.env` for Mistral finding enrichment.
-
-### Who it is for
-
-UX researchers and designers who conduct moderated think-aloud tests and need evidence-backed synthesis faster than manual video review—without losing quotes, severity, or heuristic context.
-
 ### Submission files
 
 | File | Purpose |
 |------|---------|
-| [`mp2.md`](mp2.md) | Competency claims (C3–C7) |
-| [`reflection.md`](reflection.md) | ~500-word project reflection |
-| [`MP2/mp2/`](MP2/mp2/) | Submission folder + Lovable prompt |
-| [`MP2/mp2a/`](MP2/mp2a/) | Complete Python code |
+| [`mp2.md`](mp2.md) | Competency claims |
+| [`reflection.md`](reflection.md) | Project reflection |
+| [`MP2/mp2b/`](MP2/mp2b/) | Live app code + deployment readme |
 
 ---
 
 ## Course work
 
-Weekly assignments and notebooks are organized by week (`week 4/`, `week 6/`, `week 8/`, etc.).
+Weekly assignments and notebooks are in `week 4/`, `week 6/`, `week 8/`, and other week folders.

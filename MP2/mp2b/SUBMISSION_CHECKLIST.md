@@ -12,7 +12,7 @@
 | 3 | `README.md` with live URL | Repo root **and** `MP2/mp2b/README.md` |
 | 4 | `reflection.md` (~500 words) | Repo root **and** copy here |
 
-Canvas also accepts the PDF upload: `Downloads/hcde530_final_reflection_riti_upadhyay.pdf`
+**Final scored reflection (Canvas PDF upload):** `final_reflection.md` at repo root → PDF at `Downloads/hcde530_final_reflection_riti_upadhyay.pdf` (3 competency domains + outside learning)
 
 ## Before submit
 
